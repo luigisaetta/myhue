@@ -29,6 +29,10 @@ HUE_ENDPOINT = config['DEFAULT']['hue_url']
 # list of lights ID (defined by HUE bridge)
 ids = ['1', '2', '3', '4', '5', '6']
 
+# tutte lampade 9w
+powers = [9, 9, 9, 9, 9, 9]
+
+
 counters = [0, 0, 0, 0, 0, 0]
 
 #
@@ -49,18 +53,26 @@ while True:
     print('*** Iteration n.', count)
 
     try:
+        # HUE REST API invocation (/lights)
         r = requests.get(url = HUE_ENDPOINT)
 
         resp = json.loads(r.content.decode("utf-8"))
 
+        consumed = 0.0
+
         for id in ids:
             # rule to establish if the light is on
-            is_on = resp[id]['state']['on'] and resp[id]['state']['reachable']
+            is_on = resp[id]['state']['reachable'] and resp[id]['state']['on']
             
             print('Light ', id , is_on)
 
             if is_on:
                 counters[int(id) - 1] = counters[int(id) - 1] + 1
+                consumed = consumed + powers[int(id) - 1]
+        
+        consumed = consumed/60
+
+        print('*** Consumed this minute = ', consumed)
     except:
         print('*** Error in GET !')
         print('\n')
